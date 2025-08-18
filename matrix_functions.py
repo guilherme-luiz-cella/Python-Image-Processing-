@@ -225,6 +225,177 @@ def matrix_to_grayscale(rgb_matrix):
     return grayscale_matrix
 
 
+def add_pixel_value(matrix, matrix_type, value):
+    """
+    Add a constant value to all pixels in the matrix
+    Clamps values between 0 and 255
+    
+    Args:
+        matrix: Python list matrix
+        matrix_type: 'grayscale' or 'rgb'
+        value: Integer value to add to each pixel
+        
+    Returns:
+        list: New matrix with adjusted pixel values
+    """
+    result_matrix = []
+    
+    if matrix_type == 'grayscale':
+        for row in matrix:
+            new_row = []
+            for pixel in row:
+                new_value = pixel + value
+                # Clamp between 0 and 255
+                new_value = max(0, min(255, new_value))
+                new_row.append(new_value)
+            result_matrix.append(new_row)
+    else:  # RGB
+        for row in matrix:
+            new_row = []
+            for pixel in row:
+                r, g, b = pixel
+                new_r = max(0, min(255, r + value))
+                new_g = max(0, min(255, g + value))
+                new_b = max(0, min(255, b + value))
+                new_row.append([new_r, new_g, new_b])
+            result_matrix.append(new_row)
+    
+    return result_matrix
+
+def subtract_pixel_value(matrix, matrix_type, value):
+    """
+    Subtract a constant value from all pixels in the matrix
+    Clamps values between 0 and 255
+    
+    Args:
+        matrix: Python list matrix
+        matrix_type: 'grayscale' or 'rgb'
+        value: Integer value to subtract from each pixel
+        
+    Returns:
+        list: New matrix with adjusted pixel values
+    """
+    result_matrix = []
+    
+    if matrix_type == 'grayscale':
+        for row in matrix:
+            new_row = []
+            for pixel in row:
+                new_value = pixel - value
+                # Clamp between 0 and 255
+                new_value = max(0, min(255, new_value))
+                new_row.append(new_value)
+            result_matrix.append(new_row)
+    else:  # RGB
+        for row in matrix:
+            new_row = []
+            for pixel in row:
+                r, g, b = pixel
+                new_r = max(0, min(255, r - value))
+                new_g = max(0, min(255, g - value))
+                new_b = max(0, min(255, b - value))
+                new_row.append([new_r, new_g, new_b])
+            result_matrix.append(new_row)
+    
+    return result_matrix
+
+def merge_images(matrix1, matrix_type1, matrix2, matrix_type2, operation='add'):
+    """
+    Merge two images using pixel arithmetic
+    Images must have the same dimensions
+    
+    Args:
+        matrix1: First image matrix
+        matrix_type1: Type of first matrix ('grayscale' or 'rgb')
+        matrix2: Second image matrix
+        matrix_type2: Type of second matrix ('grayscale' or 'rgb')
+        operation: 'add' or 'subtract'
+        
+    Returns:
+        tuple: (result_matrix, result_type) or None if incompatible
+    """
+    height1, width1 = get_matrix_dimensions(matrix1)
+    height2, width2 = get_matrix_dimensions(matrix2)
+    
+    # Check if dimensions match
+    if height1 != height2 or width1 != width2:
+        return None, None
+    
+    # Convert both to same type (prefer RGB if one is RGB)
+    if matrix_type1 != matrix_type2:
+        if matrix_type1 == 'rgb' or matrix_type2 == 'rgb':
+            # Convert grayscale to RGB
+            if matrix_type1 == 'grayscale':
+                matrix1 = grayscale_to_rgb(matrix1)
+                matrix_type1 = 'rgb'
+            if matrix_type2 == 'grayscale':
+                matrix2 = grayscale_to_rgb(matrix2)
+                matrix_type2 = 'rgb'
+    
+    result_matrix = []
+    result_type = matrix_type1  # Both are same type now
+    
+    if result_type == 'grayscale':
+        for y in range(height1):
+            new_row = []
+            for x in range(width1):
+                pixel1 = matrix1[y][x]
+                pixel2 = matrix2[y][x]
+                
+                if operation == 'add':
+                    new_value = pixel1 + pixel2
+                else:  # subtract
+                    new_value = pixel1 - pixel2
+                
+                # Clamp between 0 and 255
+                new_value = max(0, min(255, new_value))
+                new_row.append(new_value)
+            result_matrix.append(new_row)
+    else:  # RGB
+        for y in range(height1):
+            new_row = []
+            for x in range(width1):
+                r1, g1, b1 = matrix1[y][x]
+                r2, g2, b2 = matrix2[y][x]
+                
+                if operation == 'add':
+                    new_r = r1 + r2
+                    new_g = g1 + g2
+                    new_b = b1 + b2
+                else:  # subtract
+                    new_r = r1 - r2
+                    new_g = g1 - g2
+                    new_b = b1 - b2
+                
+                # Clamp between 0 and 255
+                new_r = max(0, min(255, new_r))
+                new_g = max(0, min(255, new_g))
+                new_b = max(0, min(255, new_b))
+                
+                new_row.append([new_r, new_g, new_b])
+            result_matrix.append(new_row)
+    
+    return result_matrix, result_type
+
+def grayscale_to_rgb(grayscale_matrix):
+    """
+    Convert grayscale matrix to RGB by duplicating values
+    
+    Args:
+        grayscale_matrix: 2D grayscale matrix
+        
+    Returns:
+        list: 3D RGB matrix
+    """
+    rgb_matrix = []
+    for row in grayscale_matrix:
+        new_row = []
+        for pixel in row:
+            # Convert grayscale value to RGB by duplicating
+            new_row.append([pixel, pixel, pixel])
+        rgb_matrix.append(new_row)
+    return rgb_matrix
+
 def print_matrix_info(matrix, matrix_type):
     """
     Print detailed information about the matrix
